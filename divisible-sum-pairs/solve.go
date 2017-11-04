@@ -7,10 +7,10 @@ import "fmt"
 
 func main() {
 
-	var c int
-	fmt.Scanf("%v", &c)
+	var count, div uint
+	fmt.Scanf("%v %v", &count, &div)
 
-	array := make([]uint64, c)
+	array := make([]uint, count)
 	for i := range array {
 		_, err := fmt.Scan(&array[i])
 		if err != nil {
@@ -19,35 +19,20 @@ func main() {
 		}
 	}
 
-	var d, m uint64
-	fmt.Scanf("%v %v", &d, &m)
+	solve := solve(array, div)
 
-	count := solve(array, d, m)
-
-	fmt.Printf("%d", count)
+	fmt.Printf("%d", solve)
 }
 
-func solve(squares []uint64, d, m uint64) int {
-	var ways int
-	var sum uint64
-	var squaresLen = uint64(len(squares))
-
-	if m <= squaresLen {
-		for i := 0; uint64(i) < m; i++ {
-			sum += squares[i]
-		}
-
-		if sum == d {
-			ways += 1
+func solve(array []uint, div uint) int {
+	var pairs int
+	for i1, n1 := range array {
+		for i2, n2 := range array {
+			if i1 < i2 && (n1+n2)%div == 0 {
+				pairs += 1
+			}
 		}
 	}
 
-	for i := 0; uint64(i) < squaresLen-m; i++ {
-		sum = sum - squares[i] + squares[uint64(i)+m]
-		if sum == d {
-			ways++
-		}
-	}
-
-	return ways
+	return pairs
 }
