@@ -3,7 +3,11 @@
 //
 package main
 
-import "fmt"
+import (
+	. "./tree"
+	"fmt"
+	"time"
+)
 
 // X and Y
 type row_node struct {
@@ -22,6 +26,7 @@ type row_update_query struct {
 }
 
 func main() {
+	fmt.Println(time.Now(), "Start")
 
 	var nodeNumber, queryNumber, rootNumber int64
 	fmt.Scanf("%v %v %v", &nodeNumber, &queryNumber, &rootNumber)
@@ -47,45 +52,81 @@ func main() {
 
 func solve(rootNumber int64, nodes []row_node, queries []row_update_query) string {
 	r := ""
-	var tree *TreeNode
-	for _, n := range nodes {
-		var x, y *TreeNode
-		// X
-		if tree != nil {
-			x = tree.FindByNumber(n.X)
-		}
+	//var tree *TreeNode
 
-		if x == nil {
+	m := make(map[int64]*TreeNode, len(nodes))
+
+	for _, n := range nodes {
+		//var x, y *TreeNode
+		// X
+		x, ok := m[n.X]
+		if !ok {
 			x = NewTreeNode(n.X)
+			m[n.X] = x
 		}
+		// if tree != nil {
+		// 	x = tree.FindByNumber(n.X)
+		// }
+
+		// if x == nil {
+		// 	x = NewTreeNode(n.X)
+		// }
 
 		// Y
-		if tree != nil {
-			y = tree.FindByNumber(n.Y)
-		}
-
-		if y == nil {
+		y, ok := m[n.Y]
+		if !ok {
 			y = NewTreeNode(n.Y)
+			m[n.Y] = y
 		}
+		// if tree != nil {
+		// 	y = tree.FindByNumber(n.Y)
+		// }
 
-		if tree == nil {
-			x.Insert(y)
-			tree = x
-		} else {
-			x.Insert(y)
-		}
+		// if y == nil {
+		// 	y = NewTreeNode(n.Y)
+		// }
+
+		// if tree == nil {
+		// 	x.Insert(y)
+		// 	tree = x
+		// } else {
+		// 	x.Insert(y)
+		// }
+		x.Insert(y)
+
+		// fmt.Println(x, x.List(), "-------x")
+		// fmt.Println(y, y.List(), "--------y")
 	}
 
-	rootNode := tree.FindByNumber(rootNumber)
+	cache := NewTreeNodeCache()
+	cache.Build(m[rootNumber])
 
-	for _, q := range queries {
+	// rootNode := tree.FindByNumber(rootNumber)
+	//rootNode := m[rootNumber]
+	fmt.Println(time.Now(), "Build end")
+	for i, q := range queries {
+
+		if i%100 == 0 {
+			fmt.Println(time.Now(), "hundred", i)
+		}
+
 		// update
 		if q.Type == 85 {
-			foundNode := rootNode.FindByNumber(q.TorA)
+			// fmt.Println(tree, "tree")
+			// fmt.Println(rootNumber, "rootNumber")
+			// fmt.Println(rootNode, "rootNode")
+			//foundNode := rootNode.FindByNumber(q.TorA)
+			foundNode := m[q.TorA]
+			//fmt.Println(q, "Update Start")
 			foundNode.Reset().Update(q.VorB, q.KorNothing)
+			//fmt.Println("Update End")
 		} else {
 			// query
-			sum := rootNode.FindByNumber(q.TorA).Sum(q.VorB)
+			//sum := rootNode.FindByNumber(q.TorA).Sum(q.VorB)
+			foundNode := m[q.TorA]
+			//fmt.Println(q, "Sum Start")
+			sum := foundNode.FindByNumber(q.TorA).Sum(q.VorB)
+			//fmt.Println(sum, "Sum End")
 			r += fmt.Sprintf("%d\n", sum)
 		}
 	}
@@ -93,236 +134,236 @@ func solve(rootNumber int64, nodes []row_node, queries []row_update_query) strin
 	return r
 }
 
-//// all
+// //// all
 
-type TreeNode struct {
-	NodeList *TreeNodeList
-	ComeNode *TreeNode
-	Distance int64
-	Value    int64
-	Number   int64
-}
+// type TreeNode struct {
+// 	NodeList *TreeNodeList
+// 	ComeNode *TreeNode
+// 	Distance int64
+// 	Value    int64
+// 	Number   int64
+// }
 
-func NewTreeNode(number int64) *TreeNode {
-	n := TreeNode{}
-	n.NodeList = NewTreeNodeList()
-	n.NodeList.Insert(&n)
-	n.Number = number
-	return &n
-}
+// func NewTreeNode(number int64) *TreeNode {
+// 	n := TreeNode{}
+// 	n.NodeList = NewTreeNodeList()
+// 	n.NodeList.Insert(&n)
+// 	n.Number = number
+// 	return &n
+// }
 
-func (node *TreeNode) Insert(n *TreeNode) {
-	node.NodeList.Insert(n)
-	n.NodeList.Insert(node)
-}
+// func (node *TreeNode) Insert(n *TreeNode) {
+// 	node.NodeList.Insert(n)
+// 	n.NodeList.Insert(node)
+// }
 
-func (node *TreeNode) Remove(n *TreeNode) {
-	node.NodeList.Remove(n, node)
-}
+// func (node *TreeNode) Remove(n *TreeNode) {
+// 	node.NodeList.Remove(n, node)
+// }
 
-func (node *TreeNode) List() []*TreeNode {
-	return node.NodeList.List(node)
-}
+// func (node *TreeNode) List() []*TreeNode {
+// 	return node.NodeList.List(node)
+// }
 
-func (node *TreeNode) Len() int64 {
-	//fmt.Println(node, node.GetComeNode(), "1111")
-	return node.NodeList.Len(node) + 1
-}
+// func (node *TreeNode) Len() int64 {
+// 	//fmt.Println(node, node.GetComeNode(), "1111")
+// 	return node.NodeList.Len(node) + 1
+// }
 
-func (node *TreeNode) SetComeNode(n *TreeNode) {
-	node.ComeNode = n
-}
+// func (node *TreeNode) SetComeNode(n *TreeNode) {
+// 	node.ComeNode = n
+// }
 
-func (node *TreeNode) GetComeNode() *TreeNode {
-	return node.ComeNode
-}
+// func (node *TreeNode) GetComeNode() *TreeNode {
+// 	return node.ComeNode
+// }
 
-func (node *TreeNode) SetDistance(distance int64) {
-	node.Distance = distance + 1
-}
+// func (node *TreeNode) SetDistance(distance int64) {
+// 	node.Distance = distance + 1
+// }
 
-func (node *TreeNode) GetDistance() int64 {
-	return node.Distance
-}
+// func (node *TreeNode) GetDistance() int64 {
+// 	return node.Distance
+// }
 
-func (node *TreeNode) FindByNumber(number int64) *TreeNode {
-	return node.NodeList.FindByNumber(number, node)
-}
+// func (node *TreeNode) FindByNumber(number int64) *TreeNode {
+// 	return node.NodeList.FindByNumber(number, node)
+// }
 
-func (node *TreeNode) Update(valueV int64, valueK int64) *TreeNode {
-	node.Calculate(valueV, valueK)
-	node.UpdateQuery(valueV, valueK)
-	return node
-}
+// func (node *TreeNode) Update(valueV int64, valueK int64) *TreeNode {
+// 	node.Calculate(valueV, valueK)
+// 	node.UpdateQuery(valueV, valueK)
+// 	return node
+// }
 
-func (node *TreeNode) UpdateQuery(valueV int64, valueK int64) *TreeNode {
-	node.NodeList.UpdateQuery(node, valueV, valueK)
-	return node
-}
+// func (node *TreeNode) UpdateQuery(valueV int64, valueK int64) *TreeNode {
+// 	node.NodeList.UpdateQuery(node, valueV, valueK)
+// 	return node
+// }
 
-func (node *TreeNode) Sum(toNumber int64) int64 {
-	toNode := node.FindByNumber(toNumber)
+// func (node *TreeNode) Sum(toNumber int64) int64 {
+// 	toNode := node.FindByNumber(toNumber)
 
-	return node.NodeList.Sum(node, toNode)
-}
+// 	return node.NodeList.Sum(node, toNode)
+// }
 
-func (node *TreeNode) Reset() *TreeNode {
-	node.Distance = 0
-	node.ComeNode = nil
+// func (node *TreeNode) Reset() *TreeNode {
+// 	node.Distance = 0
+// 	node.ComeNode = nil
 
-	return node
-}
+// 	return node
+// }
 
-func (node *TreeNode) Calculate(valueV int64, valueK int64) *TreeNode {
-	node.Value += valueV + node.GetDistance()*valueK
+// func (node *TreeNode) Calculate(valueV int64, valueK int64) *TreeNode {
+// 	node.Value += valueV + node.GetDistance()*valueK
 
-	return node
-}
+// 	return node
+// }
 
-func (node *TreeNode) String() string {
-	return fmt.Sprintf("(number: %d, value: %d, distance: %d)", node.Number, node.Value, node.Distance)
-}
+// func (node *TreeNode) String() string {
+// 	return fmt.Sprintf("(number: %d, value: %d, distance: %d)", node.Number, node.Value, node.Distance)
+// }
 
-type TreeNodeList struct {
-	Neighbors []*TreeNode
-}
+// type TreeNodeList struct {
+// 	Neighbors []*TreeNode
+// }
 
-func NewTreeNodeList() *TreeNodeList {
-	l := TreeNodeList{}
-	l.Neighbors = make([]*TreeNode, 0, 100)
-	return &l
-}
+// func NewTreeNodeList() *TreeNodeList {
+// 	l := TreeNodeList{}
+// 	l.Neighbors = make([]*TreeNode, 0, 100)
+// 	return &l
+// }
 
-func (l *TreeNodeList) Insert(n *TreeNode) {
-	ok, _ := l.IsExists(n)
-	if !ok {
-		l.Neighbors = append(l.Neighbors, n)
-	}
-}
+// func (l *TreeNodeList) Insert(n *TreeNode) {
+// 	ok, _ := l.IsExists(n)
+// 	if !ok {
+// 		l.Neighbors = append(l.Neighbors, n)
+// 	}
+// }
 
-func (l *TreeNodeList) Remove(n *TreeNode, owner *TreeNode) {
-	ok, index := l.IsExists(n)
-	if ok {
-		l.Neighbors = append(l.Neighbors[:index], l.Neighbors[index+1:]...)
-	} else {
-		for _, node := range l.Neighbors {
-			if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
-				continue
-			}
+// func (l *TreeNodeList) Remove(n *TreeNode, owner *TreeNode) {
+// 	ok, index := l.IsExists(n)
+// 	if ok {
+// 		l.Neighbors = append(l.Neighbors[:index], l.Neighbors[index+1:]...)
+// 	} else {
+// 		for _, node := range l.Neighbors {
+// 			if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
+// 				continue
+// 			}
 
-			node.SetComeNode(owner)
-			node.Remove(n)
-		}
-	}
-}
+// 			node.SetComeNode(owner)
+// 			node.Remove(n)
+// 		}
+// 	}
+// }
 
-func (l TreeNodeList) List(owner *TreeNode) []*TreeNode {
+// func (l TreeNodeList) List(owner *TreeNode) []*TreeNode {
 
-	tmp := make([]*TreeNode, len(l.Neighbors))
-	copy(tmp, l.Neighbors)
+// 	tmp := make([]*TreeNode, len(l.Neighbors))
+// 	copy(tmp, l.Neighbors)
 
-	ok, index := l.IsExists(owner)
-	if ok {
-		//		fmt.Println(tmp, "1111", tmp[index])
+// 	ok, index := l.IsExists(owner)
+// 	if ok {
+// 		//		fmt.Println(tmp, "1111", tmp[index])
 
-		return append(tmp[:index], tmp[index+1:]...)
-	}
+// 		return append(tmp[:index], tmp[index+1:]...)
+// 	}
 
-	return tmp
-}
+// 	return tmp
+// }
 
-func (l *TreeNodeList) Len(owner *TreeNode) int64 {
-	var number int64 = 0
-	for _, node := range l.Neighbors {
-		if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
-			continue
-		}
+// func (l *TreeNodeList) Len(owner *TreeNode) int64 {
+// 	var number int64 = 0
+// 	for _, node := range l.Neighbors {
+// 		if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
+// 			continue
+// 		}
 
-		node.SetComeNode(owner)
-		number += node.Len()
-	}
+// 		node.SetComeNode(owner)
+// 		number += node.Len()
+// 	}
 
-	return number
-}
+// 	return number
+// }
 
-func (l TreeNodeList) IsExists(n *TreeNode) (bool, int64) {
-	isExists := false
-	var index int64 = 0
-	for i := range l.Neighbors {
-		if l.Neighbors[i].Number == n.Number {
-			isExists = true
-			index = int64(i)
-			break
-		}
-	}
+// func (l TreeNodeList) IsExists(n *TreeNode) (bool, int64) {
+// 	isExists := false
+// 	var index int64 = 0
+// 	for i := range l.Neighbors {
+// 		if l.Neighbors[i].Number == n.Number {
+// 			isExists = true
+// 			index = int64(i)
+// 			break
+// 		}
+// 	}
 
-	return isExists, index
-}
+// 	return isExists, index
+// }
 
-func (l TreeNodeList) IsExistsByNumber(number int64) (bool, int64) {
-	isExists := false
-	var index int64 = 0
-	for i := range l.Neighbors {
-		if l.Neighbors[i].Number == number {
-			isExists = true
-			index = int64(i)
-			break
-		}
-	}
+// func (l TreeNodeList) IsExistsByNumber(number int64) (bool, int64) {
+// 	isExists := false
+// 	var index int64 = 0
+// 	for i := range l.Neighbors {
+// 		if l.Neighbors[i].Number == number {
+// 			isExists = true
+// 			index = int64(i)
+// 			break
+// 		}
+// 	}
 
-	return isExists, index
-}
+// 	return isExists, index
+// }
 
-func (l *TreeNodeList) FindByNumber(number int64, owner *TreeNode) *TreeNode {
-	ok, index := l.IsExistsByNumber(number)
-	var foundNode *TreeNode
-	if ok {
-		foundNode = l.Neighbors[index]
-		foundNode.SetComeNode(owner)
-	} else {
-		for _, node := range l.Neighbors {
-			if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
-				continue
-			}
+// func (l *TreeNodeList) FindByNumber(number int64, owner *TreeNode) *TreeNode {
+// 	ok, index := l.IsExistsByNumber(number)
+// 	var foundNode *TreeNode
+// 	if ok {
+// 		foundNode = l.Neighbors[index]
+// 		foundNode.SetComeNode(owner)
+// 	} else {
+// 		for _, node := range l.Neighbors {
+// 			if owner.Number == node.Number || (owner.GetComeNode() != nil && owner.GetComeNode().Number == node.Number) {
+// 				continue
+// 			}
 
-			node.SetComeNode(owner)
-			foundNode = node.FindByNumber(number)
-			if foundNode != nil {
-				break
-			}
-		}
-	}
+// 			node.SetComeNode(owner)
+// 			foundNode = node.FindByNumber(number)
+// 			if foundNode != nil {
+// 				break
+// 			}
+// 		}
+// 	}
 
-	return foundNode
-}
+// 	return foundNode
+// }
 
-// Solution
+// // Solution
 
-func (l *TreeNodeList) UpdateQuery(owner *TreeNode, valueV int64, valueK int64) {
+// func (l *TreeNodeList) UpdateQuery(owner *TreeNode, valueV int64, valueK int64) {
 
-	for _, node := range l.Neighbors {
-		if node.Number > owner.Number {
-			node.SetComeNode(owner)
-			node.SetDistance(owner.GetDistance())
-			node.Calculate(valueV, valueK)
+// 	for _, node := range l.Neighbors {
+// 		if node.Number > owner.Number {
+// 			node.SetComeNode(owner)
+// 			node.SetDistance(owner.GetDistance())
+// 			node.Calculate(valueV, valueK)
 
-			node.UpdateQuery(valueV, valueK)
-		}
-	}
-}
+// 			node.UpdateQuery(valueV, valueK)
+// 		}
+// 	}
+// }
 
-func (l *TreeNodeList) Sum(owner *TreeNode, toNode *TreeNode) int64 {
-	sum := toNode.Value
+// func (l *TreeNodeList) Sum(owner *TreeNode, toNode *TreeNode) int64 {
+// 	sum := toNode.Value
 
-	var tmpNode *TreeNode = toNode.ComeNode
-	for {
-		if tmpNode == nil || owner.Number == tmpNode.Number {
-			break
-		}
+// 	var tmpNode *TreeNode = toNode.ComeNode
+// 	for {
+// 		if tmpNode == nil || owner.Number == tmpNode.Number {
+// 			break
+// 		}
 
-		sum += tmpNode.Value
-		tmpNode = tmpNode.ComeNode
-	}
+// 		sum += tmpNode.Value
+// 		tmpNode = tmpNode.ComeNode
+// 	}
 
-	return sum
-}
+// 	return sum
+// }
