@@ -5,16 +5,11 @@ package main
 
 import "fmt"
 
-type row struct {
-	N0 int
-	N1 int
-	N2 int
-}
-
 func main() {
-	square := make([]row, 3)
+	square := make([][]int, 3)
 	for i := range square {
-		fmt.Scanf("%v %v %v", &square[i].N0, &square[i].N1, &square[i].N2)
+		square[i] = make([]int, 3)
+		fmt.Scanf("%v %v %v", &square[i][0], &square[i][1], &square[i][2])
 	}
 
 	solve := solve(square)
@@ -22,24 +17,30 @@ func main() {
 	fmt.Printf("%d", solve)
 }
 
-func solve(square []row) int {
-	var cost int
-	//var magicSum int = 15
+func solve(square [][]int) int {
+	cost := 81
 
-	// for _, s := range square {
-	// 	if s.N0+s.N1+s.N2 != magicSum {
-	// 		if (s.N0 + s.N1 + s.N2) > magicSum {
-	// 			cost += (s.N0 + s.N1 + s.N2) - magicSum
-	// 		} else {
-	// 			cost += magicSum - (s.N0 + s.N1 + s.N2)
+	mat := [][][]int{
+		{{8, 1, 6}, {3, 5, 7}, {4, 9, 2}},
+		{{6, 1, 8}, {7, 5, 3}, {2, 9, 4}},
+		{{4, 9, 2}, {3, 5, 7}, {8, 1, 6}},
+		{{2, 9, 4}, {7, 5, 3}, {6, 1, 8}},
+		{{8, 3, 4}, {1, 5, 9}, {6, 7, 2}},
+		{{4, 3, 8}, {9, 5, 1}, {2, 7, 6}},
+		{{6, 7, 2}, {1, 5, 9}, {8, 3, 4}},
+		{{2, 7, 6}, {9, 5, 1}, {4, 3, 8}},
+	}
 
-	// 		}
-	// 	}
-	// }
-
-	for _, s := range square {
-		//cost += Abs((s.N0+s.N1+s.N2)+(square[i].N0+square[i].N1+square[i].N2)-30) / 2
-		cost += (s.N0 + s.N1 + s.N2)
+	for k := 0; k < 8; k++ {
+		tmpCost := 0
+		for i := 0; i < 3; i++ {
+			for j := 0; j < 3; j++ {
+				tmpCost += Abs(square[i][j] - mat[k][i][j])
+			}
+		}
+		if tmpCost < cost {
+			cost = tmpCost
+		}
 	}
 
 	return cost
